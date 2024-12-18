@@ -6,10 +6,7 @@ import org.yearup.data.CategoryDao;
 import org.yearup.models.Category;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +60,7 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
             ps.setInt(1, categoryId);
 
             ResultSet row = ps.executeQuery();
+
             if(row.next()){
                 Category category = mapRow(row);
                 return category;
@@ -87,17 +85,22 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
         // create a new category
         try (Connection connection = MySqlCategoryDao.getConnection()) {
             PreparedStatement ps = connection.prepareStatement("""
-                    INSERT INTO categories (category_id, name, description,
-                    VALUE(?,?,?);
-                    """);
-            ps.setInt(1, category.getCategoryId());
-            ps.setString(2, category.getName());
-            ps.setString(3, category.getDescription());
+                    INSERT INTO categories (name, description)
+                    VALUE(?,?);
+                    """, Statement.RETURN_GENERATED_KEYS);
+
+            ps.setString(1, category.getName());
+            ps.setString(2, category.getDescription());
             ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            rs.next();
+            int row = rs.getInt(1);
+            category.setCategoryId(row);
+            return category;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return category;
     }
 
     @Override
