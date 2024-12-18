@@ -36,6 +36,7 @@ public class MySqlProfileDao extends MySqlDaoBase implements ProfileDao
 
             ps.executeUpdate();
 
+
             return profile;
         }
         catch (SQLException e)

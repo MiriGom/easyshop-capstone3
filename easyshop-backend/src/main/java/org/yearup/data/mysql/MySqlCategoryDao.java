@@ -32,13 +32,16 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM categories;");
             ps.executeQuery();
 
-            ResultSet resultSet = ps.getResultSet();
-            while (resultSet.next()) {
-                int categoryId = resultSet.getInt( "category_id");
-                String name = resultSet.getString("name");
-                String description = resultSet.getString("description");
+            ResultSet row = ps.getResultSet();
+            while (row.next()) {
+                Category category = mapRow(row);
+                categoryList.add(category);
+                /* Miriam's version of above code
+                int categoryId = row.getInt( "category_id");
+                String name = row.getString("name");
+                String description = row.getString("description");
                 categoryList.add(new Category(categoryId, name, description));
-
+                */
             }
         }catch (SQLException e) {
             throw new RuntimeException(e);
@@ -50,7 +53,7 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
     public Category getById(int categoryId)
     {
         // get category by id
-        Category category= null;
+
 
         String name;
         String description;
@@ -59,16 +62,23 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
             PreparedStatement ps = connection.prepareStatement("SELECT category_id, name, description FROM categories WHERE category_id = ?;");
             ps.setInt(1, categoryId);
 
-            ResultSet resultSet = ps.executeQuery();
-            while (resultSet.next()) {
-                name = resultSet.getString("name");
-                description = resultSet.getString("description");
+            ResultSet row = ps.executeQuery();
+            if(row.next()){
+                Category category = mapRow(row);
+                return category;
+            }
+            /*
+            while (row.next()) {
+                name = row.getString("name");
+                description = row.getString("description");
                 category = new Category(categoryId, name, description);
             }
+
+             */
         }catch (SQLException e) {
 
         }
-        return category;
+        return null;
     }
 
     @Override
