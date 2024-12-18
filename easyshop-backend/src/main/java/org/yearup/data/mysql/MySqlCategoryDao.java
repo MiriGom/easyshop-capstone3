@@ -41,7 +41,7 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
 
             }
         }catch (SQLException e) {
-
+            throw new RuntimeException(e);
         }
         return categoryList;
     }
@@ -96,8 +96,14 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
         // update category
         try (Connection connection = MySqlCategoryDao.getConnection()){
             PreparedStatement ps = connection.prepareStatement("""
-                    
+                    UPDATE categories
+                    SET category_id = ?, name = ?, description = ?;
+                    WHERE category_id = ?;
                     """);
+            ps.setInt(1, category.getCategoryId());
+            ps.setString(1, category.getName());
+            ps.setString(3, category.getDescription());
+            ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -107,6 +113,17 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
     public void delete(int categoryId)
     {
         // delete category
+        try (Connection connection = MySqlCategoryDao.getConnection()) {
+            PreparedStatement ps = connection.prepareStatement("""
+                    DELETE
+                    FROM categories
+                    WHERE category_id = ?;
+                    """);
+            ps.setInt(1, categoryId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Category mapRow(ResultSet row) throws SQLException
@@ -114,15 +131,14 @@ public class MySqlCategoryDao extends MySqlDaoBase implements CategoryDao
         int categoryId = row.getInt("category_id");
         String name = row.getString("name");
         String description = row.getString("description");
+/*
+        Category category = new Category();
 
-        Category category = new Category()
-        {{
-            setCategoryId(categoryId);
-            setName(name);
-            setDescription(description);
-        }};
-
-        return category;
+           category.setCategoryId(categoryId);
+           category.setName(name);
+           category.setDescription(description);
+*/
+        return new Category(categoryId, name, description);
     }
 
 }
